@@ -20,7 +20,7 @@ $ErrorActionPreference = 'Stop'
 
 # Paths
 $wcdPath = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\icd.exe"
-$agentScript = Resolve-Path '.\get-agent-info.ps1'
+$agentScript = Resolve-Path '.\scripts\get-agent-info.ps1'
 
 # Verify agent script exists
 if (-not (Test-Path $agentScript)) {
