@@ -28,16 +28,39 @@ if (-not (Test-Path $agentScript)) {
     exit 3
 }
 
+# Install Winget if needed
+if (-not (Get-Command 'winget' -ErrorAction SilentlyContinue)) {
+    Write-Host "Installing Winget..."
+    try {
+        $progressPreference = 'silentlyContinue'
+        Write-Host "Downloading WinGet and its dependencies..."
+        Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle
+        
+        # Install the dependencies
+        Add-AppxPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle
+        
+        # Verify installation
+        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+            Write-Error "Winget installation failed"
+            exit 1
+        }
+        
+        Write-Host "Winget installed successfully"
+    }
+    catch {
+        Write-Error "Failed to install Winget: $_"
+        exit 1
+    }
+    finally {
+        # Cleanup installer
+        Remove-Item Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -ErrorAction SilentlyContinue
+    }
+}
+
 # Install Windows Configuration Designer if needed
 if (-not (Test-Path $wcdPath)) {
     Write-Host "Checking Windows Configuration Designer installation..."
     try {
-        # Verify winget availability
-        if (-not (Get-Command 'winget' -ErrorAction SilentlyContinue)) {
-            Write-Error "Winget not found. Please ensure Windows 10 1809+ with App Installer is installed."
-            exit 1
-        }
-
         # Check if WCD is already installed
         $wcdInstalled = winget list 9NBLGGH4TX22 | Select-String "Windows Configuration Designer"
         
