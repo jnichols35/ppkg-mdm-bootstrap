@@ -15,21 +15,26 @@ jobs:
     - name: Get version
       id: get_version
       run: |
-        try {
-            $currentTag = $(git describe --tags --abbrev=0 2>&1)
-            if ($LASTEXITCODE -eq 0) {
-                $version = [Version]$currentTag
-                $version = "{0}.{1}.{2}" -f $version.Major, $version.Minor, ($version.Build + 1)
-            } else {
-                Write-Host "No existing tags found. Starting with 0.0.1"
-                $version = "0.0.1"
+        $ErrorActionPreference = 'Continue'
+        
+        # Try to get the latest tag
+        $gitOutput = git describe --tags --abbrev=0 2>&1
+        $version = if ($LASTEXITCODE -eq 0) {
+            try {
+                $v = [Version]$gitOutput
+                "{0}.{1}.{2}" -f $v.Major, $v.Minor, ($v.Build + 1)
+            } catch {
+                Write-Host "Invalid version format in tag, defaulting to 0.0.1"
+                "0.0.1"
             }
-        } catch {
-            Write-Host "Error getting version, defaulting to 0.0.1"
-            $version = "0.0.1"
+        } else {
+            Write-Host "No existing tags found. Starting with 0.0.1"
+            "0.0.1"
         }
-        "version=$version" >> $env:GITHUB_OUTPUT
+        
         Write-Host "Setting version to: $version"
+        "version=$version" >> $env:GITHUB_OUTPUT
+        exit 0
       shell: pwsh
 
     - name: Build PPKG
