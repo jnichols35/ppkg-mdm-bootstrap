@@ -19,8 +19,9 @@
 $ErrorActionPreference = 'Stop'
 
 # Paths
-$wcdPath = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\icd.exe"
+$wcdPath = Join-Path $env:ProgramFiles "Windows Kits\10\Assessment and Deployment Kit\Imaging and Configuration Designer\x86\ICD.exe"
 $agentScript = Resolve-Path '.\scripts\get-agent-info.ps1'
+$adkInstallerPath = Join-Path $env:TEMP "adksetup.exe"
 
 # Verify agent script exists
 if (-not (Test-Path $agentScript)) {
@@ -28,64 +29,39 @@ if (-not (Test-Path $agentScript)) {
     exit 3
 }
 
-# Install Winget if needed
-if (-not (Get-Command 'winget' -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing Winget..."
+# Install Windows ADK with Configuration Designer if needed
+if (-not (Test-Path $wcdPath)) {
+    Write-Host "Installing Windows ADK with Configuration Designer..."
     try {
-        $progressPreference = 'silentlyContinue'
-        Write-Host "Downloading WinGet and its dependencies..."
-        Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle
+        # Download ADK installer
+        Write-Host "Downloading Windows ADK installer..."
+        $adkUrl = "https://go.microsoft.com/fwlink/?linkid=2196127"
+        Invoke-WebRequest -Uri $adkUrl -OutFile $adkInstallerPath
         
-        # Install the dependencies
-        Add-AppxPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle
+        # Install ADK with required features
+        Write-Host "Installing Windows ADK..."
+        $process = Start-Process -FilePath $adkInstallerPath -ArgumentList "/quiet /features OptionId.ImagingAndConfigurationDesigner" -Wait -PassThru -NoNewWindow
         
+        if ($process.ExitCode -ne 0) {
+            Write-Error "ADK installation failed with exit code: $($process.ExitCode)"
+            exit 1
+        }
+
         # Verify installation
-        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-            Write-Error "Winget installation failed"
+        if (-not (Test-Path $wcdPath)) {
+            Write-Error "ADK installation completed but WCD not found at: $wcdPath"
             exit 1
         }
         
-        Write-Host "Winget installed successfully"
+        Write-Host "Windows ADK installed successfully"
     }
     catch {
-        Write-Error "Failed to install Winget: $_"
+        Write-Error "Failed to install Windows ADK: $_"
         exit 1
     }
     finally {
         # Cleanup installer
-        Remove-Item Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -ErrorAction SilentlyContinue
-    }
-}
-
-# Install Windows Configuration Designer if needed
-if (-not (Test-Path $wcdPath)) {
-    Write-Host "Checking Windows Configuration Designer installation..."
-    try {
-        # Check if WCD is already installed
-        $wcdInstalled = winget list 9NBLGGH4TX22 | Select-String "Windows Configuration Designer"
-        
-        if (-not $wcdInstalled) {
-            Write-Host "Installing Windows Configuration Designer..."
-            # Install WCD
-            $process = Start-Process -FilePath 'winget' `
-                -ArgumentList "install --id 9NBLGGH4TX22 --silent --accept-source-agreements --accept-package-agreements" `
-                -Wait -PassThru -NoNewWindow
-
-            if ($process.ExitCode -ne 0) {
-                Write-Error "WCD installation failed with exit code: $($process.ExitCode)"
-                exit 1
-            }
-        }
-
-        # Verify installation with new path
-        if (-not (Test-Path $wcdPath)) {
-            Write-Error "WCD installation completed but executable not found at: $wcdPath"
-            exit 1
-        }
-    }
-    catch {
-        Write-Error "Failed to install WCD: $_"
-        exit 1
+        Remove-Item -Path $adkInstallerPath -ErrorAction SilentlyContinue
     }
 }
 
@@ -134,7 +110,8 @@ $customizationXml = @"
 $customizationXmlPath = Join-Path $tempDir "customizations.xml"
 $customizationXml | Out-File -FilePath $customizationXmlPath -Encoding UTF8
 
-$storePath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.WindowsConfigurationDesigner_*_*__8wekyb3d8bbwe\icd\Microsoft-Desktop-Provisioning.dat"
+# Update store path for ADK installation
+$storePath = Join-Path $env:ProgramFiles "Windows Kits\10\Assessment and Deployment Kit\Imaging and Configuration Designer\x86\Microsoft-Desktop-Provisioning.dat"
 
 try {
     # Create output directory if it doesn't exist
