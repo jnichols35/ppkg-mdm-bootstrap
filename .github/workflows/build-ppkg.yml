@@ -54,6 +54,7 @@ jobs:
         name: Release ${{ steps.get_version.outputs.version }}
         files: |
           output/DeviceSetup.ppkg
+          output/DeviceSetup.cat
         draft: false
         prerelease: false
       env:
