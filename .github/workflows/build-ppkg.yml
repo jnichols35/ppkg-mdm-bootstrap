@@ -1,0 +1,43 @@
+name: Build PPKG
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Get version
+      id: get_version
+      run: |
+        $currentTag = git describe --tags --abbrev=0 2>$null
+        if ($LASTEXITCODE -ne 0) {
+          $version = "0.0.1"
+        } else {
+          $version = [Version]$currentTag
+          $version = "{0}.{1}.{2}" -f $version.Major, $version.Minor, ($version.Build + 1)
+        }
+        "version=$version" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+
+    - name: Build PPKG
+      run: .\scripts\create-ppkg.ps1
+      shell: pwsh
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.get_version.outputs.version }}
+        name: Release ${{ steps.get_version.outputs.version }}
+        files: |
+          output/DeviceSetup.ppkg
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
