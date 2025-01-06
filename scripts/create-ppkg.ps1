@@ -19,7 +19,7 @@
 $ErrorActionPreference = 'Stop'
 
 # Paths
-$wcdPath = Join-Path $env:ProgramFiles "Windows Kits\10\Assessment and Deployment Kit\Imaging and Configuration Designer\x86\ICD.exe"
+$wcdPath = Join-Path ${Env:ProgramFiles(x86)} "Windows Kits\10\Assessment and Deployment Kit\Imaging and Configuration Designer\x86\ICD.exe"
 $agentScript = Resolve-Path '.\scripts\get-agent-info.ps1'
 $adkInstallerPath = Join-Path $env:TEMP "adksetup.exe"
 
@@ -111,7 +111,7 @@ $customizationXmlPath = Join-Path $tempDir "customizations.xml"
 $customizationXml | Out-File -FilePath $customizationXmlPath -Encoding UTF8
 
 # Update store path for ADK installation
-$storePath = Join-Path $env:ProgramFiles "Windows Kits\10\Assessment and Deployment Kit\Imaging and Configuration Designer\x86\Microsoft-Desktop-Provisioning.dat"
+$storePath = Join-Path ${Env:ProgramFiles(x86)} "Windows Kits\10\Assessment and Deployment Kit\Imaging and Configuration Designer\x86\Microsoft-Desktop-Provisioning.dat"
 
 try {
     # Create output directory if it doesn't exist
