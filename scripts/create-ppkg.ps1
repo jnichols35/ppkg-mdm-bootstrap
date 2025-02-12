@@ -20,12 +20,13 @@ $ErrorActionPreference = 'Stop'
 
 # Paths
 $wcdPath = Join-Path ${Env:ProgramFiles(x86)} "Windows Kits\10\Assessment and Deployment Kit\Imaging and Configuration Designer\x86\ICD.exe"
-$agentScript = Resolve-Path '.\scripts\get-agent-info.ps1'
+$agentScript = 'get-remote-script.ps1'
+$agentScriptPath = Resolve-Path ".\scripts\$agentScript"
 $adkInstallerPath = Join-Path $env:TEMP "adksetup.exe"
 
 # Verify agent script exists
-if (-not (Test-Path $agentScript)) {
-    Write-Error "Required script not found: $agentScript"
+if (-not (Test-Path $agentScriptPath)) {
+    Write-Error "Required script not found: $agentScriptPath"
     exit 3
 }
 
@@ -72,7 +73,7 @@ $assetsDir = Join-Path $tempDir "Assets"
 New-Item -ItemType Directory -Path $assetsDir -Force | Out-Null
 
 # Copy agent script to assets
-Copy-Item -Path $agentScript -Destination $assetsDir
+Copy-Item -Path $agentScriptPath -Destination $assetsDir
 
 # Create customization XML
 $customizationXml = @"
@@ -93,8 +94,8 @@ $customizationXml = @"
           <PrimaryContext>
             <Command>
               <CommandConfig Name="Install-MDM-Agent">
-                <CommandFile>$($agentScript.Path)</CommandFile>
-                <CommandLine>PowerShell.exe -ExecutionPolicy Bypass -File get-agent-info.ps1</CommandLine>
+                <CommandFile>$($agentScriptPath.Path)</CommandFile>
+                <CommandLine>PowerShell.exe -ExecutionPolicy Bypass -File $agentScript</CommandLine>
                 <ContinueInstall>True</ContinueInstall>
               </CommandConfig>
             </Command>
