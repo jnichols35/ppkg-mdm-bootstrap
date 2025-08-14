@@ -1,5 +1,5 @@
-# Define the URL of the GitHub Gist
-$scriptUrl = "https://gist.githubusercontent.com/jnichols35/f312b669c4f1c0dadcc0d4d1c5f75dbd/raw/c095c8f66075f234843676eebf8e0d613e8bddfe/RemoteScript.ps1"
+# Define the URL of the GitHub Gist (update this to point to your remote script with prompt)
+$scriptUrl = "https://gist.githubusercontent.com/jnichols35/b2a6dfa6fd7238cccc3b8be569b735b7/raw/remote-prompt.ps1"
 
 # Define the local path where the script will be saved
 $localScriptPath = "$env:TEMP\downloadedScript.ps1"
