@@ -13,6 +13,7 @@
         - Windows 10 1809+ with App Installer (winget)
         - ~3GB free disk space for ADK installation
         - Internet connectivity for WCD installation
+        - REMOTE_SCRIPT_URL environment variable set to the URL of the script to download at provisioning time
 #>
 
 # Error handling
@@ -27,6 +28,13 @@ $adkInstallerPath = Join-Path $env:TEMP "adksetup.exe"
 # Verify agent script exists
 if (-not (Test-Path $agentScriptPath)) {
     Write-Error "Required script not found: $agentScriptPath"
+    exit 3
+}
+
+# Resolve remote script URL from environment
+$remoteScriptUrl = $env:REMOTE_SCRIPT_URL
+if (-not $remoteScriptUrl) {
+    Write-Error "REMOTE_SCRIPT_URL environment variable is not set. Set it to the URL of the script the PPKG should download at provisioning time."
     exit 3
 }
 
@@ -72,8 +80,11 @@ $assetsDir = Join-Path $tempDir "Assets"
 
 New-Item -ItemType Directory -Path $assetsDir -Force | Out-Null
 
-# Copy agent script to assets
+# Copy agent script to assets and inject the remote script URL
 Copy-Item -Path $agentScriptPath -Destination $assetsDir
+$agentScriptTarget = Join-Path $assetsDir $agentScript
+(Get-Content -Raw -Path $agentScriptTarget).Replace('__REMOTE_SCRIPT_URL__', $remoteScriptUrl) |
+    Set-Content -Path $agentScriptTarget -NoNewline
 
 # Create customization XML
 $customizationXml = @"

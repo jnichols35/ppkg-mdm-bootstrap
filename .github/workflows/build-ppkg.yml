@@ -5,10 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# Add permissions block
+# Required by softprops/action-gh-release to create releases
 permissions:
   contents: write
-  packages: write
 
 jobs:
   build:
@@ -45,10 +44,13 @@ jobs:
     - name: Build PPKG
       run: .\scripts\create-ppkg.ps1
       shell: pwsh
+      env:
+        REMOTE_SCRIPT_URL: ${{ vars.REMOTE_SCRIPT_URL }}
 
     - name: Create Release
       id: create_release
-      uses: softprops/action-gh-release@v1
+      # softprops/action-gh-release pinned to v3.0.4 for supply-chain safety
+      uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
         name: Release ${{ steps.get_version.outputs.version }}
@@ -56,5 +58,4 @@ jobs:
           output/DeviceSetup.ppkg
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        token: ${{ secrets.GITHUB_TOKEN }}

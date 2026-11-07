@@ -19,6 +19,7 @@ The GitHub Action workflow automatically:
 - Windows Configuration Designer (installed automatically)
 - ~3GB free disk space for ADK installation
 - Internet connectivity for WCD installation
+- A GitHub repository variable named `REMOTE_SCRIPT_URL` containing the URL of the PowerShell script the PPKG should download and run during device setup
 
 ## Release Versioning
 
@@ -41,6 +42,8 @@ Releases follow semantic versioning (MAJOR.MINOR.PATCH):
 ## Output
 
 The action produces a `DeviceSetup.ppkg` file that can be used for Windows device provisioning.
+
+> **Security note:** The generated PPKG downloads a PowerShell script at provisioning time (from the URL in the `REMOTE_SCRIPT_URL` variable) and executes it as `SYSTEM` on the target device. Only point the variable at content you control and trust, and keep the repository private if the URL exposes non-public resources.
 
 ## Exit Codes
 
