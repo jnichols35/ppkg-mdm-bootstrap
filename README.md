@@ -1,6 +1,6 @@
-# Windows Provisioning Package Builder
+# PPKG MDM Bootstrap — Autopilot without Autopilot
 
-This repository contains automation for building Windows Provisioning Packages (PPKG) that deploy MDM agents during Windows device setup.
+This repository builds Windows Provisioning Packages (PPKG) that enroll new Windows devices into an MDM solution (e.g. JumpCloud or NinjaOne) during OOBE, without requiring Windows Autopilot or Intune. Devices launch into the standard Windows setup experience, and the MDM agent is installed automatically during initial device setup.
 
 ## How it Works
 
@@ -8,9 +8,9 @@ The GitHub Action workflow automatically:
 1. Runs on a Windows virtual machine
 2. Installs the Windows Configuration Designer (WCD) tool
 3. Creates a provisioning package that will:
-   - Run during initial device setup
+   - Run during initial device setup (OOBE)
    - Execute the included PowerShell script
-   - Handle MDM agent deployment
+   - Download and install the MDM agent for the device
 4. Publishes the PPKG file as a GitHub release with an auto-incrementing version number
 
 ## Requirements
