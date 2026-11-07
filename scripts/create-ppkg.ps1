@@ -34,7 +34,7 @@ if (-not (Test-Path $agentScriptPath)) {
 # Resolve remote script URL from environment
 $remoteScriptUrl = $env:REMOTE_SCRIPT_URL
 if (-not $remoteScriptUrl) {
-    Write-Error "REMOTE_SCRIPT_URL environment variable is not set. Set it to the URL of the script the PPKG should download at provisioning time."
+    Write-Host "ERROR: REMOTE_SCRIPT_URL environment variable is not set. Set it to the URL of the script the PPKG should download at provisioning time."
     exit 3
 }
 
